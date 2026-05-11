@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCAS Snake Quest - Grade 7 Math Review</title>
+  <style>
+    :root {
+      --bg1: #10172a;
+      --bg2: #1e1b4b;
+      --panel: rgba(255,255,255,.1);
+      --panel2: rgba(255,255,255,.16);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --gold: #facc15;
+      --green: #4ade80;
+      --red: #fb7185;
+      --blue: #38bdf8;
+      --purple: #c084fc;
+      --orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.28), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(250,204,21,.16), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+    }
+    .screen.active { display: flex; }
+
+    .card {
+      width: min(980px, 96vw);
+      background: rgba(15, 23, 42, .78);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 28px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      padding: 26px;
+      backdrop-filter: blur(12px);
+    }
+
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 {
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      line-height: .95;
+      letter-spacing: -2px;
+    }
+    h2 { font-size: clamp(1.4rem, 3vw, 2.5rem); }
+    p { color: var(--muted); line-height: 1.5; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 24px;
+      align-items: center;
+    }
+    @media (max-width: 800px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(250,204,21,.15);
+      border: 1px solid rgba(250,204,21,.35);
+      color: #fde68a;
+      font-weight: 800;
+      font-size: .9rem;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 18px;
+      padding: 13px 18px;
+      font-weight: 900;
+      cursor: pointer;
+      color: #0f172a;
+      background: linear-gradient(135deg, #facc15, #fb923c);
+      box-shadow: 0 10px 24px rgba(250,204,21,.22);
+      transition: transform .15s ease, filter .15s ease;
+      font-size: 1rem;
+    }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn.secondary { background: linear-gradient(135deg, #38bdf8, #c084fc); color: white; }
+    .btn.ghost { background: rgba(255,255,255,.12); color: white; box-shadow: none; border: 1px solid rgba(255,255,255,.18); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .rules {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .rule {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-weight: 650;
+    }
+
+    .game-wrap {
+      width: min(1120px, 98vw);
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 980px) { .game-wrap { grid-template-columns: 1fr; } }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .stat-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stat {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-weight: 900;
+      min-width: 92px;
+      text-align: center;
+    }
+    .stat span { display: block; font-size: .75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+
+    canvas {
+      width: 100%;
+      max-width: 760px;
+      aspect-ratio: 1 / 1;
+      background: #0f172a;
+      border-radius: 24px;
+      border: 2px solid rgba(255,255,255,.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 18px 48px rgba(0,0,0,.28);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .side-panel {
+      background: rgba(15,23,42,.72);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 24px;
+      padding: 18px;
+    }
+    .side-panel h3 { color: #fef3c7; }
+    .category-list { display: grid; gap: 8px; margin-top: 12px; }
+    .cat-pill {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      color: #e2e8f0;
+      font-weight: 750;
+    }
+    .cat-pill small { color: var(--muted); }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 54px);
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .control-btn {
+      height: 50px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.12);
+      color: white;
+      border: 1px solid rgba(255,255,255,.16);
+      font-size: 1.25rem;
+      font-weight: 900;
+    }
+    .controls .empty { visibility: hidden; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal {
+      width: min(720px, 96vw);
+      background: #111827;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 26px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.48);
+      padding: 22px;
+    }
+    .question-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: .78rem;
+      background: rgba(56,189,248,.16);
+      color: #bae6fd;
+      border: 1px solid rgba(56,189,248,.25);
+    }
+    .question-text {
+      font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+      line-height: 1.35;
+      color: white;
+      font-weight: 850;
+      margin: 10px 0 16px;
+    }
+    .answers { display: grid; gap: 10px; }
+    .answer {
+      text-align: left;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.09);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .answer:hover { background: rgba(255,255,255,.16); }
+    .answer.correct { background: rgba(74,222,128,.22); border-color: rgba(74,222,128,.55); }
+    .answer.wrong { background: rgba(251,113,133,.22); border-color: rgba(251,113,133,.55); }
+    .feedback {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      color: #e2e8f0;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+    .feedback.active { display: block; }
+
+    .mini-snake {
+      width: 100%;
+      min-height: 230px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(56,189,248,.18), rgba(192,132,252,.18));
+      border: 1px solid rgba(255,255,255,.16);
+      position: relative;
+      overflow: hidden;
+    }
+    .mini-snake::before {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: rgba(250,204,21,.17);
+      right: -40px;
+      top: -60px;
+    }
+    .pixel-snake { position: absolute; left: 28px; bottom: 42px; display: flex; gap: 7px; }
+    .seg { width: 34px; height: 34px; border-radius: 10px; background: #4ade80; box-shadow: 0 0 18px rgba(74,222,128,.35); }
+    .seg.head { background: #22c55e; position: relative; }
+    .seg.head::after { content: "• •"; position: absolute; top: 3px; left: 8px; color: #052e16; letter-spacing: 3px; font-weight: 900; }
+    .gem { position: absolute; right: 58px; bottom: 50px; font-size: 3rem; animation: float 1.8s ease-in-out infinite; }
+    @keyframes float { 0%,100%{ transform: translateY(0) rotate(-4deg);} 50%{ transform: translateY(-10px) rotate(4deg);} }
+
+    .final-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .final-stat {
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 20px;
+      padding: 16px;
+      text-align: center;
+    }
+    .final-stat strong { display:block; font-size: 2rem; color: var(--gold); }
+
+    .pause-note { color: #fde68a; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <section id="startScreen" class="screen active">
+    <div class="card hero-grid">
+      <div>
+        <div class="badge">🐍 Grade 7 MCAS Math Review</div>
+        <h1>MCAS Snake Quest</h1>
+        <p>Play classic Snake, collect glowing MCAS gems, and answer 7th grade Massachusetts math review questions to grow your snake, earn coins, and survive.</p>
+        <div class="rules">
+          <div class="rule">🎮 Move with arrow keys, WASD, or the on-screen buttons.</div>
+          <div class="rule">💎 Eat a gem to unlock a review question.</div>
+          <div class="rule">✅ Correct answer: +100 points, +10 coins, snake grows.</div>
+          <div class="rule">❌ Wrong answer: lose 1 life, but you get an explanation.</div>
+          <div class="rule">🏁 Goal: collect 20 gems before losing all 3 lives.</div>
+        </div>
+        <button class="btn" onclick="startGame()">Start Quest</button>
+        <button class="btn ghost" onclick="showHowTo()">Teacher Notes</button>
+      </div>
+      <div class="mini-snake" aria-hidden="true">
+        <div class="pixel-snake">
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg head"></div>
+        </div>
+        <div class="gem">💎</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <div class="game-wrap">
+      <div class="card">
+        <div class="topbar">
+          <div>
+            <h2>MCAS Snake Quest</h2>
+            <div id="statusText" class="pause-note">Collect a gem to answer a question.</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><span>Score</span><b id="score">0</b></div>
+            <div class="stat"><span>Coins</span><b id="coins">0</b></div>
+            <div class="stat"><span>Lives</span><b id="lives">3</b></div>
+            <div class="stat"><span>Gems</span><b id="gems">0/20</b></div>
+          </div>
+        </div>
+        <canvas id="game" width="600" height="600"></canvas>
+      </div>
+      <aside class="side-panel">
+        <h3>Review Strands</h3>
+        <p>Questions are mixed from Massachusetts grade 7 math review topics.</p>
+        <div class="category-list" id="categoryList"></div>
+        <hr style="border-color: rgba(255,255,255,.12); margin: 16px 0;" />
+        <p><b>Keyboard:</b> Arrow keys or WASD</p>
+        <p><b>Pause:</b> Space bar</p>
+        <div class="controls">
+          <button class="control-btn empty">.</button><button class="control-btn" onclick="setDir(0,-1)">▲</button><button class="control-btn empty">.</button>
+          <button class="control-btn" onclick="setDir(-1,0)">◀</button><button class="control-btn" onclick="togglePause()">Ⅱ</button><button class="control-btn" onclick="setDir(1,0)">▶</button>
+          <button class="control-btn empty">.</button><button class="control-btn" onclick="setDir(0,1)">▼</button><button class="control-btn empty">.</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="endScreen" class="screen">
+    <div class="card">
+      <div class="badge" id="endBadge">Quest Complete</div>
+      <h1 id="endTitle">Nice work!</h1>
+      <p id="endMessage">You reviewed a lot of MCAS math.</p>
+      <div class="final-grid">
+        <div class="final-stat"><span>Final Score</span><strong id="finalScore">0</strong></div>
+        <div class="final-stat"><span>Coins</span><strong id="finalCoins">0</strong></div>
+        <div class="final-stat"><span>Correct</span><strong id="finalCorrect">0</strong></div>
+        <div class="final-stat"><span>Questions</span><strong id="finalQuestions">0</strong></div>
+      </div>
+      <button class="btn" onclick="startGame()">Play Again</button>
+      <button class="btn ghost" onclick="goHome()">Back to Start</button>
+    </div>
+  </section>
+
+  <div id="questionModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="question-meta">
+        <span class="chip" id="qCategory">Category</span>
+        <span class="chip" id="qDifficulty">MCAS Review</span>
+      </div>
+      <div class="question-text" id="qText"></div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback"></div>
+      <div style="margin-top: 14px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn secondary" id="continueBtn" onclick="continueGame()" disabled>Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="teacherModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Teacher Notes</h2>
+      <p>This is a single-file HTML game. Students can play independently on Chromebooks. It does not collect names, log data, use ads, or require a login.</p>
+      <p>Best classroom use: give students scratch paper or whiteboards. Tell them the game is fun, but the math answer must be worked out before clicking.</p>
+      <p>To change questions, scroll to the <b>questions</b> array in the code and edit the text, answer choices, correct index, or explanation.</p>
+      <button class="btn" onclick="closeHowTo()">Close</button>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const gridSize = 24;
+const tileCount = canvas.width / gridSize;
+const targetGems = 20;
+
+const questions = [
+  {cat:'Ratios & Proportions', diff:'Unit Rate', q:'A snack pack has 12 crackers and costs $3. What is the cost per cracker?', a:['$0.25','$0.33','$3.00','$4.00'], c:0, exp:'Divide cost by crackers: 3 ÷ 12 = 0.25, so each cracker costs $0.25.'},
+  {cat:'Ratios & Proportions', diff:'Percent', q:'A $40 hoodie is 25% off. What is the sale price?', a:['$10','$15','$30','$35'], c:2, exp:'25% of 40 is 10. Subtract the discount: 40 - 10 = 30.'},
+  {cat:'Ratios & Proportions', diff:'Proportions', q:'If 5 tickets cost $35, how much do 8 tickets cost at the same rate?', a:['$40','$48','$56','$70'], c:2, exp:'The unit price is 35 ÷ 5 = 7 dollars per ticket. 8 × 7 = 56.'},
+  {cat:'Ratios & Proportions', diff:'Scale', q:'On a map, 2 inches represents 15 miles. How many miles does 6 inches represent?', a:['20','30','45','90'], c:2, exp:'6 inches is 3 times 2 inches, so the real distance is 3 × 15 = 45 miles.'},
+  {cat:'Ratios & Proportions', diff:'Constant of Proportionality', q:'A table shows x = 2, 4, 6 and y = 10, 20, 30. What is the constant of proportionality?', a:['2','5','10','20'], c:1, exp:'For a proportional relationship y = kx. 10 ÷ 2 = 5, 20 ÷ 4 = 5, and 30 ÷ 6 = 5.'},
+  {cat:'Ratios & Proportions', diff:'Percent Increase', q:'A score increases from 60 to 75. What is the percent increase?', a:['15%','20%','25%','75%'], c:2, exp:'The increase is 15. Divide by the original: 15 ÷ 60 = 0.25 = 25%.'},
+  {cat:'Ratios & Proportions', diff:'Tax', q:'A meal costs $18. Sales tax is 6%. About how much is the tax?', a:['$0.60','$1.08','$6.00','$10.80'], c:1, exp:'6% of 18 is 0.06 × 18 = 1.08.'},
+  {cat:'Ratios & Proportions', diff:'Equation', q:'Which equation represents y is 3.5 times x?', a:['y = x + 3.5','y = 3.5x','x = 3.5y','y = x ÷ 3.5'], c:1, exp:'“3.5 times x” means multiply x by 3.5, so y = 3.5x.'},
+
+  {cat:'Number System', diff:'Integers', q:'What is -8 + 13?', a:['-21','-5','5','21'], c:2, exp:'The signs are different, so subtract 13 - 8 = 5 and keep the sign of 13.'},
+  {cat:'Number System', diff:'Integers', q:'What is -6 - 9?', a:['-15','-3','3','15'], c:0, exp:'Subtracting 9 from -6 moves 9 more spaces left: -15.'},
+  {cat:'Number System', diff:'Rational Numbers', q:'What is 3/4 + 1/8?', a:['4/12','7/8','1/2','5/8'], c:1, exp:'Convert 3/4 to 6/8. Then 6/8 + 1/8 = 7/8.'},
+  {cat:'Number System', diff:'Rational Numbers', q:'What is 2.5 × (-4)?', a:['-10','-6.5','6.5','10'], c:0, exp:'A positive times a negative is negative. 2.5 × 4 = 10, so the answer is -10.'},
+  {cat:'Number System', diff:'Division', q:'What is (-18) ÷ 3?', a:['-21','-6','6','21'], c:1, exp:'A negative divided by a positive is negative. 18 ÷ 3 = 6, so -6.'},
+  {cat:'Number System', diff:'Absolute Value', q:'Which number is farthest from 0?', a:['-12','9','-4','10'], c:0, exp:'Distance from 0 is absolute value. |-12| = 12, which is greatest.'},
+  {cat:'Number System', diff:'Order of Operations', q:'Evaluate: 4 + 3(6 - 2)', a:['16','28','24','14'], c:0, exp:'Parentheses first: 6 - 2 = 4. Then 3 × 4 = 12. Finally 4 + 12 = 16.'},
+  {cat:'Number System', diff:'Fractions', q:'What is 5/6 - 1/3?', a:['4/3','4/6','1/2','2/3'], c:2, exp:'Convert 1/3 to 2/6. Then 5/6 - 2/6 = 3/6 = 1/2.'},
+
+  {cat:'Expressions & Equations', diff:'Solving Equations', q:'Solve: 3x + 5 = 20', a:['x = 5','x = 8','x = 15','x = 25'], c:0, exp:'Subtract 5 from both sides: 3x = 15. Divide by 3: x = 5.'},
+  {cat:'Expressions & Equations', diff:'Solving Equations', q:'Solve: 2(x + 4) = 18', a:['x = 5','x = 7','x = 9','x = 11'], c:0, exp:'Divide by 2: x + 4 = 9. Subtract 4: x = 5.'},
+  {cat:'Expressions & Equations', diff:'Distributive Property', q:'Which expression is equivalent to 4(x + 3)?', a:['4x + 3','x + 12','4x + 12','7x'], c:2, exp:'Distribute 4 to both terms: 4·x + 4·3 = 4x + 12.'},
+  {cat:'Expressions & Equations', diff:'Combining Like Terms', q:'Simplify: 5x + 3 - 2x + 7', a:['3x + 10','7x + 10','3x + 4','7x + 4'], c:0, exp:'Combine x terms: 5x - 2x = 3x. Combine constants: 3 + 7 = 10.'},
+  {cat:'Expressions & Equations', diff:'Inequalities', q:'Which inequality means “a number x plus 4 is greater than 12”?', a:['x + 4 < 12','x + 4 > 12','4x > 12','x - 4 > 12'], c:1, exp:'“Plus 4” is x + 4 and “greater than 12” is > 12.'},
+  {cat:'Expressions & Equations', diff:'Word Problem', q:'A gym charges $10 to join and $6 per visit. Which expression shows the cost for v visits?', a:['10v + 6','6v + 10','16v','v + 16'], c:1, exp:'The $10 is a one-time fee. The visits cost 6 dollars each, so 6v + 10.'},
+  {cat:'Expressions & Equations', diff:'Solving Equations', q:'Solve: x/4 - 3 = 5', a:['x = 2','x = 8','x = 20','x = 32'], c:3, exp:'Add 3 to both sides: x/4 = 8. Multiply by 4: x = 32.'},
+  {cat:'Expressions & Equations', diff:'Equivalent Expressions', q:'Which is equivalent to 6a - 2a + 9?', a:['4a + 9','8a + 9','4a - 9','13a'], c:0, exp:'6a - 2a = 4a, then keep +9.'},
+
+  {cat:'Geometry', diff:'Angles', q:'Two angles are supplementary. One angle is 65°. What is the other angle?', a:['25°','65°','115°','180°'], c:2, exp:'Supplementary angles add to 180°. 180 - 65 = 115°.'},
+  {cat:'Geometry', diff:'Angles', q:'Two angles are complementary. One angle is 38°. What is the other angle?', a:['52°','62°','142°','180°'], c:0, exp:'Complementary angles add to 90°. 90 - 38 = 52°.'},
+  {cat:'Geometry', diff:'Area', q:'A triangle has base 12 cm and height 5 cm. What is its area?', a:['17 cm²','30 cm²','60 cm²','120 cm²'], c:1, exp:'Triangle area = 1/2 × base × height = 1/2 × 12 × 5 = 30 cm².'},
+  {cat:'Geometry', diff:'Circle', q:'A circle has radius 4 inches. Using π ≈ 3.14, what is the circumference?', a:['12.56 in','25.12 in','50.24 in','16 in'], c:1, exp:'Circumference = 2πr = 2 × 3.14 × 4 = 25.12 inches.'},
+  {cat:'Geometry', diff:'Scale Drawing', q:'A scale drawing uses 1 cm = 4 ft. A wall is 7 cm on the drawing. How long is the real wall?', a:['11 ft','21 ft','28 ft','40 ft'], c:2, exp:'Multiply 7 cm by 4 feet per cm: 7 × 4 = 28 feet.'},
+  {cat:'Geometry', diff:'Volume', q:'A rectangular prism is 5 cm by 3 cm by 4 cm. What is the volume?', a:['12 cm³','20 cm³','60 cm³','80 cm³'], c:2, exp:'Volume = length × width × height = 5 × 3 × 4 = 60 cm³.'},
+  {cat:'Geometry', diff:'Surface Area', q:'A cube has side length 3 cm. What is its surface area?', a:['9 cm²','18 cm²','27 cm²','54 cm²'], c:3, exp:'A cube has 6 square faces. Each face is 3 × 3 = 9, and 6 × 9 = 54 cm².'},
+  {cat:'Geometry', diff:'Angles', q:'Vertical angles are always...', a:['equal in measure','supplementary','complementary','right angles'], c:0, exp:'Vertical angles are opposite angles made by intersecting lines, and they are congruent/equal.'},
+
+  {cat:'Statistics & Probability', diff:'Mean', q:'Find the mean of 6, 8, 10, and 12.', a:['8','9','10','36'], c:1, exp:'Add the numbers: 6 + 8 + 10 + 12 = 36. Divide by 4 values: 36 ÷ 4 = 9.'},
+  {cat:'Statistics & Probability', diff:'Median', q:'Find the median of 3, 9, 12, 14, 20.', a:['9','12','14','20'], c:1, exp:'The median is the middle value when the data are ordered. The middle is 12.'},
+  {cat:'Statistics & Probability', diff:'Probability', q:'A bag has 3 red, 2 blue, and 5 green marbles. What is P(blue)?', a:['1/10','1/5','2/5','1/2'], c:1, exp:'There are 10 total marbles and 2 blue. 2/10 simplifies to 1/5.'},
+  {cat:'Statistics & Probability', diff:'Probability', q:'A spinner has 8 equal sections. 3 are yellow. What is P(not yellow)?', a:['3/8','5/8','1/2','8/3'], c:1, exp:'If 3 are yellow, then 5 are not yellow. P(not yellow) = 5/8.'},
+  {cat:'Statistics & Probability', diff:'Sample', q:'Which sample is most likely to fairly represent all 7th graders at a school?', a:['Only basketball players','Every 10th student entering lunch','Only students in art club','Only students absent yesterday'], c:1, exp:'A systematic sample like every 10th student entering lunch is more likely to represent the whole grade.'},
+  {cat:'Statistics & Probability', diff:'Range', q:'Find the range of 14, 22, 18, 31, 20.', a:['9','14','17','31'], c:2, exp:'Range = greatest - least = 31 - 14 = 17.'},
+  {cat:'Statistics & Probability', diff:'Prediction', q:'A survey finds 30 out of 150 students prefer soccer. About how many out of 600 students would prefer soccer?', a:['30','60','120','300'], c:2, exp:'30/150 = 1/5. One fifth of 600 is 120.'},
+  {cat:'Statistics & Probability', diff:'Mean Absolute Deviation', q:'For the data 4, 6, 8, the mean is 6. What is the mean absolute deviation?', a:['0','2/3','4/3','2'], c:2, exp:'Distances from mean 6 are 2, 0, and 2. Average distance = (2+0+2)/3 = 4/3.'}
+];
+
+let snake, dir, nextDir, food, score, coins, lives, gems, correct, asked, gameTimer, paused, questionOpen, speed, currentQuestion, canMove;
+
+function $(id){ return document.getElementById(id); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function startGame() {
+  snake = [{x:12,y:12},{x:11,y:12},{x:10,y:12}];
+  dir = {x:1,y:0};
+  nextDir = {x:1,y:0};
+  score = 0; coins = 0; lives = 3; gems = 0; correct = 0; asked = [];
+  paused = false; questionOpen = false; speed = 130; canMove = true;
+  placeFood(); updateStats(); renderCategoryList(); showScreen('gameScreen');
+  clearInterval(gameTimer);
+  gameTimer = setInterval(gameLoop, speed);
+  draw();
+}
+
+function goHome(){ clearInterval(gameTimer); showScreen('startScreen'); }
+function showHowTo(){ $('teacherModal').classList.add('active'); }
+function closeHowTo(){ $('teacherModal').classList.remove('active'); }
+
+function renderCategoryList() {
+  const cats = [...new Set(questions.map(q => q.cat))];
+  $('categoryList').innerHTML = cats.map(cat => {
+    const count = questions.filter(q => q.cat === cat).length;
+    return `<div class="cat-pill"><span>${cat}</span><small>${count} Qs</small></div>`;
+  }).join('');
+}
+
+function updateStats() {
+  $('score').textContent = score;
+  $('coins').textContent = coins;
+  $('lives').textContent = lives;
+  $('gems').textContent = `${gems}/${targetGems}`;
+  $('statusText').textContent = paused ? 'Paused. Press space to resume.' : 'Collect a gem to answer a question.';
+}
+
+function gameLoop() {
+  if (paused || questionOpen) return;
+  dir = nextDir;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+  if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+    loseLife('Ouch! You hit a wall or yourself.');
+    return;
+  }
+
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    openQuestion();
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function loseLife(message) {
+  lives--;
+  updateStats();
+  if (lives <= 0) return endGame(false);
+  $('statusText').textContent = message + ' Snake reset!';
+  snake = [{x:12,y:12},{x:11,y:12},{x:10,y:12}];
+  dir = {x:1,y:0}; nextDir = {x:1,y:0};
+  draw();
+}
+
+function placeFood() {
+  do {
+    food = {x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount)};
+  } while (snake && snake.some(seg => seg.x === food.x && seg.y === food.y));
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // grid background
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  for (let i=0; i<tileCount; i++) {
+    for (let j=0; j<tileCount; j++) {
+      if ((i+j)%2===0) {
+        ctx.fillStyle = 'rgba(255,255,255,.025)';
+        ctx.fillRect(i*gridSize, j*gridSize, gridSize, gridSize);
+      }
+    }
+  }
+
+  // food gem
+  const fx = food.x*gridSize + gridSize/2;
+  const fy = food.y*gridSize + gridSize/2;
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = '#facc15';
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.moveTo(fx, fy-11);
+  ctx.lineTo(fx+12, fy);
+  ctx.lineTo(fx, fy+12);
+  ctx.lineTo(fx-12, fy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // snake
+  snake.forEach((seg, i) => {
+    const x = seg.x*gridSize + 2;
+    const y = seg.y*gridSize + 2;
+    const grad = ctx.createLinearGradient(x,y,x+gridSize,y+gridSize);
+    grad.addColorStop(0, i===0 ? '#22c55e' : '#4ade80');
+    grad.addColorStop(1, i===0 ? '#16a34a' : '#22c55e');
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, gridSize-4, gridSize-4, 7, true);
+    if (i===0) {
+      ctx.fillStyle = '#052e16';
+      ctx.beginPath(); ctx.arc(x+7, y+8, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+15, y+8, 2, 0, Math.PI*2); ctx.fill();
+    }
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r, fill) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+  if (fill) ctx.fill();
+}
+
+function openQuestion() {
+  questionOpen = true;
+  currentQuestion = pickQuestion();
+  $('qCategory').textContent = currentQuestion.cat;
+  $('qDifficulty').textContent = currentQuestion.diff;
+  $('qText').textContent = currentQuestion.q;
+  $('feedback').classList.remove('active');
+  $('feedback').innerHTML = '';
+  $('continueBtn').disabled = true;
+  $('answers').innerHTML = currentQuestion.a.map((choice, i) => `<button class="answer" onclick="answerQuestion(${i}, this)">${String.fromCharCode(65+i)}. ${choice}</button>`).join('');
+  $('questionModal').classList.add('active');
+}
+
+function pickQuestion() {
+  if (asked.length >= questions.length) asked = [];
+  let idx;
+  do { idx = Math.floor(Math.random() * questions.length); } while (asked.includes(idx));
+  asked.push(idx);
+  return questions[idx];
+}
+
+function answerQuestion(choice, btn) {
+  const buttons = [...document.querySelectorAll('.answer')];
+  buttons.forEach(b => b.disabled = true);
+  buttons[currentQuestion.c].classList.add('correct');
+  if (choice === currentQuestion.c) {
+    correct++;
+    score += 100;
+    coins += 10;
+    gems++;
+    $('feedback').innerHTML = `✅ Correct! ${currentQuestion.exp}`;
+    placeFood();
+    if (gems >= targetGems) {
+      updateStats();
+      $('continueBtn').textContent = 'Finish Quest';
+    } else {
+      $('continueBtn').textContent = 'Continue';
+    }
+  } else {
+    btn.classList.add('wrong');
+    lives--;
+    score = Math.max(0, score - 25);
+    $('feedback').innerHTML = `❌ Not quite. ${currentQuestion.exp}`;
+    snake.pop();
+    if (snake.length < 2) snake.push({...snake[0]});
+    placeFood();
+    $('continueBtn').textContent = lives <= 0 ? 'See Results' : 'Continue';
+  }
+  $('feedback').classList.add('active');
+  $('continueBtn').disabled = false;
+  updateStats();
+}
+
+function continueGame() {
+  $('questionModal').classList.remove('active');
+  questionOpen = false;
+  $('continueBtn').textContent = 'Continue';
+  if (gems >= targetGems) return endGame(true);
+  if (lives <= 0) return endGame(false);
+  draw();
+}
+
+function endGame(won) {
+  clearInterval(gameTimer);
+  $('endBadge').textContent = won ? '🏆 Quest Complete' : '💪 Good Review Round';
+  $('endTitle').textContent = won ? 'You beat MCAS Snake Quest!' : 'Game over — but you reviewed!';
+  $('endMessage').textContent = won ? 'You collected all 20 gems and handled the review questions.' : 'Try again and beat your score. Each question helps you get sharper.';
+  $('finalScore').textContent = score;
+  $('finalCoins').textContent = coins;
+  $('finalCorrect').textContent = correct;
+  $('finalQuestions').textContent = asked.length;
+  showScreen('endScreen');
+}
+
+function setDir(x,y) {
+  if (!canMove) return;
+  if (x === -dir.x && y === -dir.y) return;
+  nextDir = {x,y};
+}
+
+function togglePause() {
+  if (questionOpen) return;
+  paused = !paused;
+  updateStats();
+}
+
+document.addEventListener('keydown', e => {
+  const key = e.key.toLowerCase();
+  if (['arrowup','w'].includes(key)) { e.preventDefault(); setDir(0,-1); }
+  if (['arrowdown','s'].includes(key)) { e.preventDefault(); setDir(0,1); }
+  if (['arrowleft','a'].includes(key)) { e.preventDefault(); setDir(-1,0); }
+  if (['arrowright','d'].includes(key)) { e.preventDefault(); setDir(1,0); }
+  if (key === ' ') { e.preventDefault(); togglePause(); }
+});
+
+// Touch swipe support for Chromebooks/tablets
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => {
+  const t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY;
+}, {passive:true});
+canvas.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+canvas.addEventListener('touchend', e => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+  if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0);
+  else setDir(0, dy > 0 ? 1 : -1);
+});
+</script>
+</body>
+</html>
